@@ -51,7 +51,7 @@ public class enterpriseModel {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "enterpriseId")
+    @OneToMany(mappedBy = "enterprise")
     List<CollaboratorModel> collaborators;
 
     @PrePersist

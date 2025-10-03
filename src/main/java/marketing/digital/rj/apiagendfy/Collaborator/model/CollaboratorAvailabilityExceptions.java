@@ -1,40 +1,32 @@
+// marketing.digital.rj.apiagendfy.Collaborator.model.CollaboratorAvailabilityExceptions
 package marketing.digital.rj.apiagendfy.Collaborator.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.GenericGenerator;
 
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.UUID;
-@Entity(name = "tb_collaborator_availability_exception")
-@Table(name = "tb_collaborator_availability_exception")
+import java.time.OffsetDateTime;
+
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@Entity
+@Table(name = "tb_collaborator_availability_exceptions")
 public class CollaboratorAvailabilityExceptions {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", updatable = false, nullable = false)
-    private UUID id;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "collaboratorId" , nullable = false)
-    private CollaboratorModel collaboratorId;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "collaborator_id", nullable = false)
+    private CollaboratorModel collaborator; // ✅ bate com mappedBy
 
-    @Column(name = "date")
-    private Date date;
+    @Column(name = "start_at", nullable = false)
+    private OffsetDateTime startAt;
 
-    @Column(name = "start_time")
-    private LocalDateTime start_time;
+    @Column(name = "end_at", nullable = false)
+    private OffsetDateTime endAt;
 
-    @Column(name = "end_time")
-    private LocalDateTime end_time;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type")
-    private type type;
+    // Ex.: motivo/observação
+    @Column(name = "note")
+    private String note;
 }

@@ -3,57 +3,62 @@ package marketing.digital.rj.apiagendfy.scheduling.service;
 import jakarta.transaction.Transactional;
 import marketing.digital.rj.apiagendfy.Enterprise.model.enterpriseModel;
 import marketing.digital.rj.apiagendfy.Enterprise.repository.enterpriseRepository;
+import marketing.digital.rj.apiagendfy.infra.exception.ApiErrorCode;
+import marketing.digital.rj.apiagendfy.infra.exception.BusinessException;
 import marketing.digital.rj.apiagendfy.scheduling.dto.AppointmentDTO;
 import marketing.digital.rj.apiagendfy.scheduling.model.Appointment;
 import marketing.digital.rj.apiagendfy.scheduling.repository.AppointmentRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import java.time.ZoneId;
+import java.util.UUID;
 
 @Service
 public class AppointmentService {
 
     private final AppointmentRepository apptRepo;
     private final enterpriseRepository enterpriseRepo;
-
+    private final RotationService rotationService;
     public AppointmentService(AppointmentRepository apptRepo,
-                              enterpriseRepository enterpriseRepo) {
+                              enterpriseRepository enterpriseRepo,
+                              RotationService service) {
         this.apptRepo = apptRepo;
         this.enterpriseRepo = enterpriseRepo;
+        this.rotationService = service;
     }
+
+    // AppointmentService.java (trecho)
+
 
     @Transactional
     public AppointmentDTO create(AppointmentDTO dto) {
-        // validações básicas
-        if (dto.startAt() == null || dto.endAt() == null || !dto.endAt().isAfter(dto.startAt())) {
-            throw new IllegalArgumentException("Período inválido (endAt deve ser após startAt).");
+        var enterprise = enterpriseRepo.getReferenceById(UUID.fromString(String.valueOf(dto.enterpriseId())));
+        var start = dto.startAt();
+        var end   = dto.endAt();
+
+        if (apptRepo.existsByEnterprise_IdAndEndAtGreaterThanAndStartAtLessThan(
+                enterprise.getId(), start, end)) {
+            throw new BusinessException(ApiErrorCode.BUSINESS_RULE, "Horário indisponível.", HttpStatus.CONFLICT);
         }
 
-        // empresa existe?
-        enterpriseModel enterprise = enterpriseRepo.findById(dto.enterpriseId())
-                .orElseThrow(() -> new IllegalArgumentException("Enterprise não encontrada."));
+        var slotStartZ = start.atZoneSameInstant(ZoneId.of("America/Sao_Paulo"));
+        var collaborator = rotationService.pickForSlot(enterprise.getId(), slotStartZ, 30);
 
-        // conflito de horário?
-        boolean hasOverlap = apptRepo.existsByEnterprise_IdAndEndAtGreaterThanAndStartAtLessThan(
-                enterprise.getId(), dto.startAt(), dto.endAt()
-        );
-        if (hasOverlap) {
-            throw new IllegalStateException("Horário indisponível: já existe agendamento no intervalo.");
-        }
+        var appt = new Appointment();
+        appt.setEnterprise(enterprise);
+        appt.setCollaborator(collaborator);
+        appt.setStartAt(start);
+        appt.setEndAt(end);
+        appt.setStatus(Appointment.Status.BOOKED);
+        appt.setCustomerName(dto.customerName());
+        appt.setCustomerEmail(dto.customerEmail());
+        appt.setCustomerPhone(dto.customerPhone());
 
-        // montar entidade
-        Appointment a = new Appointment();
-        a.setEnterprise(enterprise);
-        a.setStartAt(dto.startAt());
-        a.setEndAt(dto.endAt());
-        a.setStatus(Appointment.Status.BOOKED); // default na criação
-        a.setCustomerName(dto.customerName());
-        a.setCustomerEmail(dto.customerEmail());
-        a.setCustomerPhone(dto.customerPhone());
-        // se tiver relationship com service/collaborator, setar aqui
-
-        // salvar
-        Appointment saved = apptRepo.save(a);
+        var saved = apptRepo.save(appt);
         return AppointmentDTO.from(saved);
     }
+
 
     @Transactional
     public AppointmentDTO cancel(Long id) {

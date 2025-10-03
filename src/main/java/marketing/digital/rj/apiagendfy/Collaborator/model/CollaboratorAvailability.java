@@ -1,37 +1,43 @@
+// marketing.digital.rj.apiagendfy.Collaborator.model.CollaboratorAvailability
 package marketing.digital.rj.apiagendfy.Collaborator.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.GenericGenerator;
-import java.time.LocalDateTime;
+
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.UUID;
 
-@Table(name = "tb_collaborator_availability_rule")
-@Entity(name = "tb_collaborator_availability_rule")
-@AllArgsConstructor
+@Data
 @NoArgsConstructor
+@Entity
+@Table(name = "tb_collaborator_availability")
 public class CollaboratorAvailability {
 
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", updatable = false, nullable = false)
-    private UUID id;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "collaborator_id", nullable = false)
+    private CollaboratorModel collaborator; // ✅ este nome precisa bater com mappedBy
 
-    @Column(name = "weekedy",nullable = false)
-    private int weekedy;
+    @Column(name = "day_of_week", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private DayOfWeek dayOfWeek;
 
-    @Column(name = "start_time",nullable = false)
-    private LocalDateTime start_time;
+    @Column(name = "start_time", nullable = false)
+    private LocalTime startTime;
 
-    @Column(name = "end_time",nullable = false)
-    private LocalDateTime end_time;
+    @Column(name = "end_time", nullable = false)
+    private LocalTime endTime;
 
-    @Column(name = "internal_minutes",nullable = false)
-    private int internal_minutes = 30;
+    @Column(name = "timezone", nullable = false, length = 64)
+    private String timezone = "America/Sao_Paulo";
 
-    @ManyToOne
-    @JoinColumn(name ="collaboratorId" , nullable = false)
-    private CollaboratorModel collaboratorId;
+    @Column(name = "step_minutes", nullable = false)
+    private int stepMinutes = 30;
+
+    @Column(name = "capacity", nullable = false)
+    private int capacity = 1;
 }

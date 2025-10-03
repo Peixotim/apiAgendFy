@@ -1,3 +1,4 @@
+// marketing.digital.rj.apiagendfy.scheduling.model.Appointment
 package marketing.digital.rj.apiagendfy.scheduling.model;
 
 import jakarta.persistence.*;
@@ -8,39 +9,43 @@ import marketing.digital.rj.apiagendfy.Collaborator.model.CollaboratorModel;
 import marketing.digital.rj.apiagendfy.Enterprise.model.enterpriseModel;
 
 import java.time.OffsetDateTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name="tb_appointment",
-        indexes = {@Index(name="idx_appt_enterprise_start", columnList="enterpriseId,startAt"),})
+@Table(
+        name = "tb_appointment",
+        indexes = {
+                @Index(name = "idx_appt_enterprise_start", columnList = "enterprise_id,start_at")
+        }
+)
 public class Appointment {
-
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "enterpriseId")
+    @JoinColumn(name = "enterprise_id", nullable = false)
     private enterpriseModel enterprise;
-    @Column(nullable=false) private OffsetDateTime startAt; // com fuso
-    @Column(nullable=false) private OffsetDateTime endAt;
+
+    @Column(name = "start_at", nullable = false)
+    private OffsetDateTime startAt;
+
+    @Column(name = "end_at", nullable = false)
+    private OffsetDateTime endAt;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "collaboratorId")
-    private CollaboratorModel collaboratorId;
+    @JoinColumn(name = "collaborator_id", nullable = false)
+    private CollaboratorModel collaborator; // ✅ nome do ATRIBUTO é 'collaborator'
 
-    @Enumerated(EnumType.STRING) // importante: salva como texto no banco
-    @Column(nullable=false, length=20)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
     private Status status = Status.BOOKED;
 
-    // dados do cliente (mínimo)
     private String customerName;
     private String customerEmail;
     private String customerPhone;
 
-    public enum Status {
-        BOOKED,
-        CANCELLED
-    }
+    public enum Status { BOOKED, CANCELLED }
 }

@@ -8,5 +8,5 @@ public enum ApiErrorCode {
     CONFLICT,
     BUSINESS_ERROR,
     BAD_REQUEST,
-    INTERNAL_ERROR
+    BUSINESS_RULE, INTERNAL_ERROR
 }
