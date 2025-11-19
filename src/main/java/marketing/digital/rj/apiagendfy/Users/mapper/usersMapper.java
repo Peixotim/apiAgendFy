@@ -62,8 +62,6 @@ public class usersMapper {
         // Converte Set<Role> -> Set<String>
         dto.setRoles(model.getRoles() == null ? Set.of()
                 : model.getRoles().stream().map(Enum::name).collect(Collectors.toSet()));
-
-        // Nunca exponha a senha
         dto.setPassword(null);
 
         return dto;
