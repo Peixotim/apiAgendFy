@@ -31,7 +31,7 @@ public class usersModel implements UserDetails {
     private String username;
 
     @Column(name = "email", nullable = false, unique = true)
-    private String email; //Identificador do usuario ou seja "username"
+    private String email;
 
     @Column(name = "phone")
     private String phone;
@@ -45,7 +45,6 @@ public class usersModel implements UserDetails {
     @Column(name="description")
     private String description;
 
-    // ---- Múltiplas roles (enum) em tabela de coleção ----
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "tb_user_roles",
@@ -71,7 +70,6 @@ public class usersModel implements UserDetails {
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
-    // ---- Callbacks para timestamps ----
     @PrePersist
     public void prePersist() {
         final var now = LocalDateTime.now();
@@ -87,10 +85,8 @@ public class usersModel implements UserDetails {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // ---- UserDetails ----
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // ROLE_ prefix padrão do Spring Security
         return roles.stream()
                 .map(r -> new SimpleGrantedAuthority("ROLE_" + r.name()))
                 .collect(Collectors.toUnmodifiableSet());
@@ -120,7 +116,6 @@ public class usersModel implements UserDetails {
     @Override
     public boolean isEnabled() { return this.enabled; }
 
-    // ---- Helpers úteis (opcional) ----
     public boolean hasRole(Role role) {
         return roles != null && roles.contains(role);
     }
